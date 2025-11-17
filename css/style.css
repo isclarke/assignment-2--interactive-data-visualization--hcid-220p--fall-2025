@@ -1,0 +1,16 @@
+#data-csv-container{
+  width: 1200px;
+  border: 1px solid black;
+  margin: 20px;
+}
+
+/* Add color to Sunday Dates */
+.sunday-text {
+    fill: blue;
+    font-weight: bold;
+}
+
+.event-line {
+    stroke: orange;
+    stroke-width: 2;
+}
