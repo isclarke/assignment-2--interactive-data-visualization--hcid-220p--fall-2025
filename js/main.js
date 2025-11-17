@@ -1,15 +1,17 @@
 // Load CSV data
 d3.csv(`data/data.csv`).then(data => {
+
     // Parse both date and time
     const parseDateTime = d3.timeParse(`%Y-%m-%d`);
     const parseTime = d3.timeParse(`%I:%M %p`);
 
     data.forEach(d => {
-        // Combine both columns into one string, e.g. "2025-11-03, 06:46 PM"
-        d.dateTime = parseDateTime(`${d.date}, ${d.time}`);
-        // Also store just the date portion for grouping
-        d.dateOnly = d3.timeFormat(`%Y-%m-%d`)(d.dateTime);
+        //Parse Date and Time
+        const dateObj = parseDate(d.date);
+        const timeObj = parseTime(d.date);
     });
+
+
 
     // Min and Max
     const minDate = d3.min(data, d => d.dateTime);
@@ -50,6 +52,8 @@ d3.csv(`data/data.csv`).then(data => {
     const yAixs = d3.axisLeft(yScale)
         .tickFormat (d3.timeFormat("%I %p"))
         .ticks(d3.timeHour.every(1));
+
+    svg.append("g").call(yAxis);
 
     //Call and move X axis
     svg.append(`g`)
