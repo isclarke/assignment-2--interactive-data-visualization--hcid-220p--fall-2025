@@ -26,6 +26,7 @@ d3.csv(`data/data.csv`).then(data => {
         .domain([minDate, maxDate])
         .range([0, 1200]);
 
+    //Scale of Y axis
     const yScale = d3.scaleTime ()
         .domain ([
             parseTime("12:00 AM"),
@@ -37,16 +38,22 @@ d3.csv(`data/data.csv`).then(data => {
     const svg = d3.select(`#data-csv-container`)
         .append(`svg`)
         .attr(`width`, 1200)
-        .attr(`height`, 200);
+        .attr(`height`, 1200);
 
-    // Create X axis
+    // Create X axis ticks
     const xAxis = d3.axisBottom(xScale)
         .ticks(d3.timeDay.every(1))
         .tickFormat(d => d3.timeFormat(`%b %d`)(d));
 
+
+    // Create Y axis ticks
+    const yAixs = d3.axisLeft(yScale)
+        .tickFormat (d3.timeFormat("%I %p"))
+        .ticks(d3.timeHour.every(1));
+
     //Call and move X axis
     svg.append(`g`)
-        .attr(`transform`, `translate(0, 150)`)
+        .attr(`transform`, `translate(0, 1250)`)
         .call(xAxis);
 
     // Add Sunday class for tick labels
