@@ -28,10 +28,10 @@ d3.csv(`data/data.csv`).then(data => {
 
     const yScale = d3.scaleTime ()
         .domain ([
-            paresetime
-
+            parseTime("12:00 AM"),
+            parseTime("11:59 PM")
         ])
-
+        .range([innerHeight, 0]);
 
     // Create SVG
     const svg = d3.select(`#data-csv-container`)
