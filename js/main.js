@@ -9,7 +9,7 @@ d3.csv(`data/data.csv`).then(data => {
         const dateObj = parseDate(d.date);
         const timeObj = parseTime(d.time);
 
-        // Full DateTime object
+        // DateTime Object
         d.dateTime = new Date(
             dateObj.getFullYear(),
             dateObj.getMonth(),
@@ -20,13 +20,11 @@ d3.csv(`data/data.csv`).then(data => {
 
         d.dateObj = dateObj;
         d.timeObj = timeObj;
-        d.dateOnly = d3.timeFormat(`%Y-%m-%d`)(d.dateTime);
+        d.dateOnly = d3.timeFormat(`%Y-%m-%d`)(d.dateTime); //Year, Month, Day Format
     });
 
     const minDate = d3.min(data, d => d.dateTime);
     const maxDate = d3.max(data, d => d.dateTime);
-    const allDates = d3.timeDays(minDate, d3.timeDay.offset(maxDate, 1));
-    const eventCount = d3.rollup(data, v => v.length, d => d.dateOnly);
 
     // Layout
     const margin = { top: 50, right: 50, bottom: 100, left: 80 };
@@ -55,7 +53,7 @@ d3.csv(`data/data.csv`).then(data => {
         .ticks(d3.timeDay.every(1))
         .tickFormat(d3.timeFormat(`%b %d`));
 
-    svg.append(`g`)
+    svg.append(`g`) // Ensure X Axis positon
         .attr(`transform`, `translate(0, ${height})`)
         .call(xAxis);
 
@@ -78,15 +76,15 @@ d3.csv(`data/data.csv`).then(data => {
         .attr(`y`, -20)
         .attr(`text-anchor`, `middle`)
         .style(`font-size`, `16px`)
-        .text(`Weeks begin on Sunday (BLUE DATES)`);
+        .text(`Weeks begin on Sunday (BLUE DATES)`); // Add Title/ Legend for Sunday
 
     // Scatter plot points
     svg.selectAll(`.dot`)
         .data(data)
         .enter()
-        .append(`circle`)
+        .append(`circle`) //Create dot or circle
         .attr(`class`, `dot`)
-        .attr(`cx`, d => xScale(d.dateTime))
-        .attr(`cy`, d => yScale(d.timeObj))
-        .attr(`r`, 5); // keep radius in JS
+        .attr(`cx`, d => xScale(d.dateTime)) //Where point is Horizontally (date)
+        .attr(`cy`, d => yScale(d.timeObj)) // Where point is vertically (time)
+        .attr(`r`, 5); //Size of point
 });
