@@ -2,92 +2,91 @@
 d3.csv(`data/data.csv`).then(data => {
 
     // Parse both date and time
-    const parseDateTime = d3.timeParse(`%Y-%m-%d`);
+    const parseDate = d3.timeParse(`%Y-%m-%d`);
     const parseTime = d3.timeParse(`%I:%M %p`);
 
     data.forEach(d => {
-        //Parse Date and Time
         const dateObj = parseDate(d.date);
-        const timeObj = parseTime(d.date);
+        const timeObj = parseTime(d.time);
+
+        // Full DateTime object
+        d.dateTime = new Date(
+            dateObj.getFullYear(),
+            dateObj.getMonth(),
+            dateObj.getDate(),
+            timeObj.getHours(),
+            timeObj.getMinutes()
+        );
+
+        d.dateObj = dateObj;
+        d.timeObj = timeObj;
+        d.dateOnly = d3.timeFormat(`%Y-%m-%d`)(d.dateTime);
     });
 
-
-
-    // Min and Max
     const minDate = d3.min(data, d => d.dateTime);
     const maxDate = d3.max(data, d => d.dateTime);
-
-    // Create CONST for all dates
     const allDates = d3.timeDays(minDate, d3.timeDay.offset(maxDate, 1));
-
-    // Count events per day using rollup
     const eventCount = d3.rollup(data, v => v.length, d => d.dateOnly);
 
-    // Scale of X axis
+    // Layout
+    const margin = { top: 50, right: 50, bottom: 100, left: 80 };
+    const width = 1200 - margin.left - margin.right;
+    const height = 1200 - margin.top - margin.bottom;
+
+    // Scales
     const xScale = d3.scaleTime()
         .domain([minDate, maxDate])
-        .range([0, 1200]);
+        .range([0, width]);
 
-    //Scale of Y axis
-    const yScale = d3.scaleTime ()
-        .domain ([
-            parseTime("12:00 AM"),
-            parseTime("11:59 PM")
-        ])
-        .range([innerHeight, 0]);
+    const yScale = d3.scaleTime()
+        .domain([parseTime(`12:00 AM`), parseTime(`11:59 PM`)])
+        .range([height, 0]); // Bottom = midnight, Top = 23:59
 
-    // Create SVG
+    // SVG
     const svg = d3.select(`#data-csv-container`)
         .append(`svg`)
-        .attr(`width`, 1200)
-        .attr(`height`, 1200);
+        .attr(`width`, width + margin.left + margin.right)
+        .attr(`height`, height + margin.top + margin.bottom)
+        .append(`g`)
+        .attr(`transform`, `translate(${margin.left},${margin.top})`);
 
-    // Create X axis ticks
+    // X-axis
     const xAxis = d3.axisBottom(xScale)
         .ticks(d3.timeDay.every(1))
-        .tickFormat(d => d3.timeFormat(`%b %d`)(d));
+        .tickFormat(d3.timeFormat(`%b %d`));
 
-
-    // Create Y axis ticks
-    const yAixs = d3.axisLeft(yScale)
-        .tickFormat (d3.timeFormat("%I %p"))
-        .ticks(d3.timeHour.every(1));
-
-    svg.append("g").call(yAxis);
-
-    //Call and move X axis
     svg.append(`g`)
-        .attr(`transform`, `translate(0, 1250)`)
+        .attr(`transform`, `translate(0, ${height})`)
         .call(xAxis);
 
-    // Add Sunday class for tick labels
+    // Y-axis
+    const yAxis = d3.axisLeft(yScale)
+        .tickFormat(d3.timeFormat(`%I %p`))
+        .ticks(d3.timeHour.every(1));
+
+    svg.append(`g`)
+        .call(yAxis);
+
+    // Sunday tick labels
     svg.selectAll(`.tick text`)
-        .filter(d => d.getDay() === 0)
+        .filter(d => d.getDay && d.getDay() === 0)
         .classed(`sunday-text`, true);
 
-    // Title label
+    // Title
     svg.append(`text`)
-        .attr(`x`, 600)
-        .attr(`y`, 20)
+        .attr(`x`, width / 2)
+        .attr(`y`, -20)
         .attr(`text-anchor`, `middle`)
-        .style(`font-size`, `14px`)
+        .style(`font-size`, `16px`)
         .text(`Weeks begin on Sunday (BLUE DATES)`);
 
-    // Draw event lines
-    svg.selectAll(`.event-line`)
-        .data(allDates)
+    // Scatter plot points
+    svg.selectAll(`.dot`)
+        .data(data)
         .enter()
-        //Appends line to each placeholder
-        .append(`line`)
-        .attr(`class`, `event-line`)
-        .attr(`x1`, d => xScale(d))
-        .attr(`x2`, d => xScale(d))
-        //Start positon on the X axis
-        .attr(`y1`, 150)
-        //Line determination based on event count for the date
-        .attr(`y2`, d => {
-            const key = d3.timeFormat(`%Y-%m-%d`)(d);
-            const count = eventCount.get(key) || 0;
-            return 150 - (count * 10);
-        });
+        .append(`circle`)
+        .attr(`class`, `dot`)
+        .attr(`cx`, d => xScale(d.dateTime))
+        .attr(`cy`, d => yScale(d.timeObj))
+        .attr(`r`, 5); // keep radius in JS
 });
